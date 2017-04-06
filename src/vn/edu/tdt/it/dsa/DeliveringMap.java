@@ -3,7 +3,6 @@ package vn.edu.tdt.it.dsa;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -16,10 +15,12 @@ public class DeliveringMap {
 		//sinh vien viet ma o day
 		Scanner sc = new Scanner(file);
 		String content = "";
+		List<String> list = new ArrayList<>();
 		while (sc.hasNext()) {
-			content += sc.next();
+//			content += sc.next() + " ";
+			list.add(sc.next());
 		}
-		List<String> list = new ArrayList<>(Arrays.asList(content.split("\\s+")));
+//		List<String> list = new ArrayList<>(Arrays.asList(content.split("\\s+")));
 		for (int i=0; i < list.size(); i ++) {
 			int weight = Integer.parseInt(list.get(i).substring(2,5));
 			int src = Integer.parseInt(list.get(i).substring(0,2));
