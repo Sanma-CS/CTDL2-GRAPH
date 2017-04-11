@@ -2,6 +2,7 @@ package vn.edu.tdt.it.dsa;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +51,54 @@ public class DeliveringMap {
 		return res;
 	}
 
+	public int[][] getUndirectedGraph() {
+        return undirectedGraph;
+    }
+
+    public int[][] getDirectedGraph() {
+        return directedGraph;
+    }
+
+	public void printGraph(int[][] graph) {
+        for (int i = 0; i < MAX_EDGE; i++) {
+            for (int j = 0; j < MAX_EDGE; j++) {
+                System.out.print(graph[i][j] + ",");
+            }
+            System.out.println();
+        }
+    }
+
+	public void printAllPath(int src, int dest) {
+        boolean[] visited = new boolean[MAX_EDGE];
+        ArrayList<Integer> path = new ArrayList<>();
+        ArrayList<ArrayList<Integer>> paths = new ArrayList<>();
+        printAllPathUtil(directedGraph, visited, src, dest, path, paths);
+        for (ArrayList<Integer> item : paths) {
+            System.out.println(item.toString());
+        }
+    }
+
+    private void printAllPathUtil(int[][] graph, boolean[] visited, int src,
+                                  int dest, ArrayList<Integer> path,
+                                  ArrayList<ArrayList<Integer>> paths) {
+        visited[src] = true;
+        path.add(src);
+
+        if (src == dest) {
+            paths.add(new ArrayList<>(path));
+        } else {
+            for (int i = 0; i < MAX_EDGE; i++) {
+                if (directedGraph[src][i] > 0) {
+                    if (!visited[i]) {
+                        printAllPathUtil(graph, visited, i, dest, path, paths);
+                    }
+                }
+            }
+        }
+        path.remove(path.size() - 1);
+        visited[src] = false;
+    }
+
 	private int case_1 (int level) {
 		return sumEdgesVertices + level;
 	}
@@ -57,8 +106,10 @@ public class DeliveringMap {
 	public static void main (String[] args){
 		try{
 			DeliveringMap map = new DeliveringMap(new File("map.txt"));
-			System.out.println(map.calculate(3, false));		//default do not touch
-			System.out.println(map.case_1(1));	//debug
+//			System.out.println(map.calculate(3, false));		//default do not touch
+//			System.out.println(map.case_1(1));	//debug
+//            map.printGraph(map.getDirectedGraph());
+            map.printAllPath(1,7);
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}
