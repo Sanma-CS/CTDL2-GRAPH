@@ -16,8 +16,8 @@ public class DeliveringMap {
 	private int[][] undirectedGraph = new int[MAX_EDGE][MAX_EDGE];
 	private int[][] directedGraph = new int[MAX_EDGE][MAX_EDGE];
 	private int sumEdgesVertices = 0;
-	private static ArrayList<Integer> list = new ArrayList<>();
-
+	private ArrayList<Integer> path = new ArrayList<>();
+	private ArrayList<ArrayList<Integer>> paths = new ArrayList<>();
 
 	public DeliveringMap(File file) throws IOException{
 		//sinh vien viet ma o day
@@ -60,13 +60,16 @@ public class DeliveringMap {
 		return sumEdgesVertices + level;
 	}
 
-	private ArrayList<Integer> DFSUtil (int src, int dest, int graph[][], boolean visited[]) {
-		if (src == dest)
-			return list;
+	private void DFSUtil (int src, int dest, int graph[][], boolean visited[]) {
+		visited[src] = true;
+		path.add(src);
+		if (src == dest) {
+			paths.add(new ArrayList<Integer>(path));
+			path.remove(path.size()-1);
+			//return;
+		}
 		else {
-			visited[src] = true;
 			//System.out.println(src + " ");	//debug
-			list.add(src);
 			for (int i = 0; i < MAX_EDGE; i++) {
 				if (graph[src][i] != Integer.MAX_VALUE) {
 					if (!visited[i]) {
@@ -74,14 +77,16 @@ public class DeliveringMap {
 					}
 				}
 			}
-			//System.out.println(list); //debug
+			path.remove(path.size()-1);
 		}
-		return list;
+		//path.pop();
+		visited[src] = false;
+
 	}
 
-	private ArrayList<Integer> DFS (int src, int dest, int graph[][]) {
+	private void DFS (int src, int dest, int graph[][]) {
 		boolean visited[] = new boolean[MAX_EDGE];
-		return DFSUtil(src, dest, graph, visited);
+		DFSUtil(src, dest, graph, visited);
 	}
 
 	
@@ -90,7 +95,9 @@ public class DeliveringMap {
 			DeliveringMap map = new DeliveringMap(new File("map.txt"));
 			//System.out.println(map.calculate(3, false));		//default do not touch
 			//System.out.println(map.case_1(1));	//debug
-			System.out.println(map.DFS(1, 45, map.directedGraph));
+			map.DFS(1, 7, map.undirectedGraph);
+			System.out.println(map.path);
+			System.out.println(map.paths);
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}
