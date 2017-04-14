@@ -65,7 +65,7 @@ public class DeliveringMap {
 		path.add(src);
 		if (src == dest) {
 			paths.add(new ArrayList<Integer>(path));
-			path.remove(path.size()-1);
+			//path.remove(path.size()-1);
 			//return;
 		}
 		else {
@@ -77,16 +77,67 @@ public class DeliveringMap {
 					}
 				}
 			}
-			path.remove(path.size()-1);
+			//path.remove(path.size()-1);
 		}
-		//path.pop();
+		path.remove(path.size()-1);
 		visited[src] = false;
 
 	}
 
-	private void DFS (int src, int dest, int graph[][]) {
+	public void DFS (int src, int dest, int graph[][]) {
 		boolean visited[] = new boolean[MAX_EDGE];
 		DFSUtil(src, dest, graph, visited);
+	}
+
+	private int minkey(int key[], boolean mstSet[]) {
+		int min_index = -1;
+		int min = Integer.MAX_VALUE;
+		for (int i = 0; i < MAX_EDGE; i++) {
+			if(!mstSet[i] && key[i] < min) {
+				min = key[i];
+				min_index = i;
+				//System.out.println(min_index);
+			}
+		}
+
+		return min_index;
+	}
+
+	private void primMST (int g[][]) {
+		int parent[] = new int[MAX_EDGE];
+		int key[] = new int[MAX_EDGE];
+		boolean mstSet[] = new boolean[MAX_EDGE]; // To represent set of vertices not yet included in MST
+
+		for (int i = 0; i < MAX_EDGE; i++) {
+			key[i] = Integer.MAX_VALUE;
+		}
+		key[0] = 0; // Make key 0 so that this vertex is picked as first vertex
+		parent[0] = -1; // First node is always root of MST
+
+		for (int j = 0; j < MAX_EDGE - 1; j++) {
+			int u = minkey(key, mstSet);
+			if (u < 0) continue;
+			mstSet[u] = true;
+			//System.out.println(minkey(key, mstSet));
+
+			for (int v = 0; v < MAX_EDGE; v++) {
+				if (g[u][v] != Integer.MAX_VALUE && !mstSet[v] && g[u][v] < key[v]) {
+					parent[v] = u;
+					key[v] = g[u][v];
+					System.out.println(g[minkey(key, mstSet)][v]);
+				}
+			}
+		}
+		//printMST(parent, g);
+	}
+
+	//to debug primMST
+	private void printMST (int parent[], int g[][]) {
+		System.out.println("edge	weight");
+		for (int i = 0; i < MAX_EDGE; i++) {
+			if (parent[i] != -1)
+				System.out.println(parent[i] + " - " + i + " " + g[i][parent[i]]);
+		}
 	}
 
 	
@@ -95,9 +146,10 @@ public class DeliveringMap {
 			DeliveringMap map = new DeliveringMap(new File("map.txt"));
 			//System.out.println(map.calculate(3, false));		//default do not touch
 			//System.out.println(map.case_1(1));	//debug
-			map.DFS(1, 7, map.undirectedGraph);
-			System.out.println(map.path);
-			System.out.println(map.paths);
+			//map.DFS(1, 7, map.undirectedGraph);
+			//System.out.println(map.path);
+			//System.out.println(map.paths);
+			map.primMST(map.undirectedGraph);
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}
