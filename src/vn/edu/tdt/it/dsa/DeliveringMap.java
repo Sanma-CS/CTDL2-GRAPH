@@ -103,21 +103,24 @@ public class DeliveringMap {
 
     // A utility function to print the constructed MST stored in
     // parent[]
-    private void printMST(int parent[], int graph[][])
+    private ArrayList<Integer> printMST(int parent[], int graph[][])
     {
-        System.out.println("Edge   Weight");
+        //System.out.println("Edge   Weight");
+        ArrayList<Integer> listWeight = new ArrayList<>();
         for (int i = 0; i < MAX_EDGE; i++) {
             if (parent[i] < 0 || graph[i][parent[i]] == Integer.MAX_VALUE) continue;
-            System.out.println(parent[i] + " - " + i + "    " +
-                    graph[i][parent[i]]);
+          //  System.out.println(parent[i] + " - " + i + "    " +
+          //          graph[i][parent[i]]);
+            listWeight.add(graph[i][parent[i]]);
         }
+        return listWeight;
     }
 
     // Function to construct and print MST for a graph represented
     //  using adjacency matrix representation
-    private void primMST(int graph[][])
+    private int primMST(int graph[][])
     {
-        // Array to store constructed MST
+    	// Array to store constructed MST
         int parent[] = new int[MAX_EDGE];
 
         // Key values used to pick minimum weight edge in cut
@@ -169,7 +172,9 @@ public class DeliveringMap {
         }
 
         // print the constructed MST
-        printMST(parent, graph);
+        ArrayList<Integer> sumWeight  = printMST(parent, graph);
+        //System.out.println(printMST(parent, graph));	//debug
+		return getSumlist(sumWeight);
     }
 
     private int findFirstNode(int[][] graph) {
@@ -191,14 +196,33 @@ public class DeliveringMap {
         return false;
     }
 
+    private int getSumlist (ArrayList<Integer> list) {
+		int s = 0;
+		for (int i=0; i < list.size(); i++) {
+			s += list.get(i);
+		}
+		return  s;
+	}
+
+	private int getSumWeightpath (ArrayList<Integer> way, int[][] graph) {
+		int s = 0;
+		for (int i = 0; i < way.size() - 1; i++) {
+			s += graph[way.get(i)][way.get(i+1)];
+		}
+		return s;
+	}
+
 	public static void main (String[] args){
 		try{
 			DeliveringMap map = new DeliveringMap(new File("map.txt"));
 			//System.out.println(map.calculate(3, false));		//default do not touch
 			//System.out.println(map.case_1(1));	//debug
-			map.DFS(1, 7, map.undirectedGraph);
+			map.DFS(1, 45, map.undirectedGraph);
 			System.out.println(map.path);
 			System.out.println(map.paths);
+			System.out.println(map.primMST(map.undirectedGraph));
+			System.out.println(map.getSumWeightpath(map.paths.get(2), map.undirectedGraph));
+
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}
