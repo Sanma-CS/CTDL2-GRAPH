@@ -2,16 +2,14 @@ package vn.edu.tdt.it.dsa;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 
 public class DeliveringMap {
 	public static final int MAX_EDGE = 100;
+	public static final int COFFEE = 1;
+	public static final int BLOCK = -1;
+	public static final int NOTHING = 0;
 
 	private int[][] undirectedGraph = new int[MAX_EDGE][MAX_EDGE];
 	private int[][] directedGraph = new int[MAX_EDGE][MAX_EDGE];
@@ -212,16 +210,57 @@ public class DeliveringMap {
 		return s;
 	}
 
+	//To track down anything in the path
+	private int getSpecialPathType  (ArrayList<Integer> way, int[][] graph) {
+		for (int i = 0; i < way.size() - 1; i++) {
+			if(graph[way.get(i)][way.get(i+1)] == 99)
+				return BLOCK;
+			else if(graph[way.get(i)][way.get(i+1)] == 0)
+				return COFFEE;
+		}
+		return NOTHING;
+	}
+
+	//To track down anything in the map
+	private int haveSpecialPath (int[][] graph) {
+		for (int i = 0; i < paths.size(); i++) {
+			if(getSpecialPathType(paths.get(i), graph) == BLOCK )
+				return BLOCK;
+			else if(getSpecialPathType(paths.get(i), graph) == COFFEE)
+				return COFFEE;
+		}
+		return NOTHING;
+	}
+
+
+	private int getMaxweight(int[][] graph) {
+		List<Integer> w = new ArrayList<>();
+		for (int i = 0; i < paths.size(); i++) {
+			w.add(getSumWeightpath(paths.get(i), graph));
+		}
+		return Collections.max(w);
+	}
+
+	private int getMinweight(int[][] graph) {
+		List<Integer> w = new ArrayList<>();
+		for (int i = 0; i < paths.size(); i++) {
+			w.add(getSumWeightpath(paths.get(i), graph));
+		}
+		return Collections.min(w);
+	}
+
 	public static void main (String[] args){
 		try{
 			DeliveringMap map = new DeliveringMap(new File("map.txt"));
 			//System.out.println(map.calculate(3, false));		//default do not touch
 			//System.out.println(map.case_1(1));	//debug
-			map.DFS(1, 45, map.undirectedGraph);
-			System.out.println(map.path);
+			map.DFS(1, 45, map.directedGraph);
+			//System.out.println(map.path);
 			System.out.println(map.paths);
-			System.out.println(map.primMST(map.undirectedGraph));
-			System.out.println(map.getSumWeightpath(map.paths.get(2), map.undirectedGraph));
+			//System.out.println(map.primMST(map.undirectedGraph));
+			//System.out.println(map.getSumWeightpath(map.paths.get(3), map.undirectedGraph));
+			System.out.println(map.getMaxweight(map.directedGraph));
+			System.out.println(map.getMinweight(map.directedGraph));
 
 		}catch(Exception ex){
 			ex.printStackTrace();
