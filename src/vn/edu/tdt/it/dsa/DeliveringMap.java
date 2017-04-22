@@ -87,6 +87,8 @@ public class DeliveringMap {
 
 	private void DFS (int src, int dest, int graph[][]) {
 		boolean visited[] = new boolean[MAX_EDGE];
+		path.clear();
+		paths.clear();
 		DFSUtil(src, dest, graph, visited);
 	}
 
@@ -255,18 +257,47 @@ public class DeliveringMap {
 		return Collections.min(w);
 	}
 
+	private int calcPath(int[][] graph, boolean isMin) {
+
+		// Remove all paths contain BLOCK
+		ArrayList<ArrayList<Integer>> removePath = new ArrayList<>();
+		if (haveSpecialPath(graph) == BLOCK) {
+			for (ArrayList<Integer> path : paths) {
+				if (getSpecialPathType(path, graph) == BLOCK) {
+					removePath.add(path);
+				}
+			}
+		}
+
+		// Remove all paths not contain COFFEE
+		if (haveSpecialPath(graph) == COFFEE) {
+			for (ArrayList<Integer> path : paths) {
+				if (getSpecialPathType(path, graph) != COFFEE) {
+					removePath.add(path);
+				}
+			}
+		}
+
+		for (ArrayList<Integer> path : removePath) {
+			paths.remove(path);
+		}
+
+		if (isMin) {
+			return getMinweight(graph);
+		}
+		return getMaxweight(graph);
+	}
+
 	public static void main (String[] args){
 		try{
 			DeliveringMap map = new DeliveringMap(new File("map.txt"));
-			//System.out.println(map.calculate(3, false));		//default do not touch
-			//System.out.println(map.case_1(1));	//debug
-			map.DFS(1, 45, map.directedGraph);
-			//System.out.println(map.path);
-			System.out.println(map.paths);
-			//System.out.println(map.primMST(map.undirectedGraph));
-			//System.out.println(map.getSumWeightpath(map.paths.get(3), map.undirectedGraph));
-			System.out.println(map.getMaxweight(map.directedGraph));
-			System.out.println(map.getMinweight(map.directedGraph));
+			System.out.println(map.primMST(map.undirectedGraph));
+			map.DFS(0,2,map.undirectedGraph);
+			for (ArrayList<Integer> path : map.paths) {
+				System.out.println(path.toString() + " " + map.getSumWeightpath											(path,	map.undirectedGraph));
+			}
+			System.out.println(map.calcPath(map.undirectedGraph, true));
+			System.out.println(map.calcPath(map.undirectedGraph, false));
 
 		}catch(Exception ex){
 			ex.printStackTrace();
