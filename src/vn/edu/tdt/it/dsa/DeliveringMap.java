@@ -49,9 +49,31 @@ public class DeliveringMap {
 
 
 	public int calculate(int level, boolean rushHour){
-		int res = 0;
-		//sinh vien viet ma o day
-		return res;
+		// Level 0 1 event handler
+		if (level == 0 || level == 1) {
+			return case_1(level);
+		}
+
+		// Level 2 3 4 event handler
+		if (1 < level && level < 5) {
+			// C2 Min path event
+		}
+
+		// Level 5 6 event handler
+		if (4 < level && level < 7) {
+			// C3 Max path event
+		}
+
+		if (level == 7) {
+			// C6 Min/max average path event
+		}
+
+		if (level == 9) {
+			// C7 MST event
+		}
+
+		// False level
+		return 0;
 	}
 
 	private int case_1 (int level) {
@@ -81,6 +103,9 @@ public class DeliveringMap {
 
 	private void DFS (int src, int dest, int graph[][]) {
 		boolean visited[] = new boolean[MAX_EDGE];
+		// Perform cleanup
+		path.clear();
+		paths.clear();
 		DFSUtil(src, dest, graph, visited);
 	}
 
