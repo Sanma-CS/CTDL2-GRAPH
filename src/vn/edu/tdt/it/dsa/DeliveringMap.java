@@ -2,7 +2,13 @@ package vn.edu.tdt.it.dsa;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
 
 
 public class DeliveringMap {
@@ -13,6 +19,8 @@ public class DeliveringMap {
 
 	private int[][] undirectedGraph = new int[MAX_EDGE][MAX_EDGE];
 	private int[][] directedGraph = new int[MAX_EDGE][MAX_EDGE];
+	private int edge_first = 0;
+	private int edge_end = 0;
 	private int sumEdgesVertices = 0;
 	private ArrayList<Integer> path = new ArrayList<>();
 	private ArrayList<ArrayList<Integer>> paths = new ArrayList<>();
@@ -22,6 +30,7 @@ public class DeliveringMap {
 		Scanner sc = new Scanner(file);
 		List<String> list = new ArrayList<>();
 		Set<Integer> vertices = new HashSet<>();
+
 		for (int i = 0; i < MAX_EDGE; i++) {
 			Arrays.fill(undirectedGraph[i], Integer.MAX_VALUE);
 			Arrays.fill(directedGraph[i], Integer.MAX_VALUE);
@@ -30,50 +39,97 @@ public class DeliveringMap {
 		while (sc.hasNext()) {
 			list.add(sc.next());
 		}
+		try {
+			edge_first = Integer.parseInt(list.get(0).substring(0,2));
+			edge_end = Integer.parseInt(list.get(list.size()-1).substring(5,7));
+			for (int i=0; i < list.size(); i ++) {
+				int weight = Integer.parseInt(list.get(i).substring(2,5));
+				int src = Integer.parseInt(list.get(i).substring(0,2));
+				int dest = Integer.parseInt(list.get(i).substring(5,7));
 
-		for (int i=0; i < list.size(); i ++) {
-			int weight = Integer.parseInt(list.get(i).substring(2,5));
-			int src = Integer.parseInt(list.get(i).substring(0,2));
-			int dest = Integer.parseInt(list.get(i).substring(5,7));
+				undirectedGraph[src][dest] = weight;
+				undirectedGraph[dest][src] = weight;
+				directedGraph[src][dest] = weight;
 
-			undirectedGraph[src][dest] = weight;
-			undirectedGraph[dest][src] = weight;
-			directedGraph[src][dest] = weight;
-
-			vertices.add(src);
-			vertices.add(dest);
-			sumEdgesVertices += weight;
-		}
-		sumEdgesVertices += vertices.size();
+				vertices.add(src);
+				vertices.add(dest);
+				sumEdgesVertices += weight;
+			}
+			sumEdgesVertices += vertices.size();
+		} catch(IndexOutOfBoundsException e)  {e.getMessage();}
 	}
 
 
 	public int calculate(int level, boolean rushHour){
-		// Level 0 1 event handler
-		if (level == 0 || level == 1) {
-			return case_1(level);
+		int res = 0;
+		//sinh vien viet ma o day
+		int[][] graph;
+		if (!rushHour)
+			graph = directedGraph;
+		else
+			graph = undirectedGraph;
+
+		DFS(edge_first, edge_end, graph);
+
+		//handle level 1,0
+		if (level == 1 || level == 0)
+			res = case_1(level);
+		//handle level 2,3,4,5,6,7
+		else if (level >=2 && level <= 7) {
+			int stamina = 100*level;
+			//check if the ways to goal have coffee or not
+			if(haveSpecialPath(graph) == COFFEE) {
+				for(int i=0; i < paths.size();i++) {
+					//choose coffee and delete the rest
+					if (getSpecialPathType(paths.get(i), graph) != COFFEE) {
+						paths.remove(i);
+						i--;
+					}
+				}
+			}
+			//check if the ways to goal have block or not
+			else if (haveSpecialPath(graph) == BLOCK) {
+				for (int i = 0; i < paths.size(); i++) {
+					//delete any way has block
+					if (getSpecialPathType(paths.get(i), graph) == BLOCK) {
+						paths.remove(i);
+						i--;
+					}
+				}
+			}
+			//when every way to goal has block
+			if (paths.isEmpty())
+				res = 99 - 70*level;
+			else {
+				if (level >= 2 && level <= 4) {
+					res = getMinweight(graph);
+					if (res > stamina)
+						res =  50*level - res;
+				}
+				else if (level ==5 || level == 6) {
+					res = getMaxweight(graph);
+					if (res >= stamina)
+						res = -1*level;
+				}
+				else if (level == 7) {
+					res = (getMaxweight(graph) + getMinweight(graph))/2;
+					if (res >= 30*level)
+						res = -21;
+				}
+			}
+
+		}
+		else if (level == 9) {
+			if (rushHour)
+				res = -3;
+			else {
+				res = primMST(undirectedGraph);
+				if (res == Integer.MAX_VALUE)
+					res = -3;
+			}
 		}
 
-		// Level 2 3 4 event handler
-		if (1 < level && level < 5) {
-			// C2 Min path event
-		}
-
-		// Level 5 6 event handler
-		if (4 < level && level < 7) {
-			// C3 Max path event
-		}
-
-		if (level == 7) {
-			// C6 Min/max average path event
-		}
-
-		if (level == 9) {
-			// C7 MST event
-		}
-
-		// False level
-		return 0;
+		return res;
 	}
 
 	private int case_1 (int level) {
@@ -277,15 +333,20 @@ public class DeliveringMap {
 	public static void main (String[] args){
 		try{
 			DeliveringMap map = new DeliveringMap(new File("map.txt"));
-			//System.out.println(map.calculate(3, false));		//default do not touch
+			//System.out.println(map.haveSpecialPath(map.undirectedGraph));
+			System.out.println(map.calculate(9, false));		//default do not touch
 			//System.out.println(map.case_1(1));	//debug
-			map.DFS(1, 45, map.directedGraph);
+			//map.DFS(1, 45, map.directedGraph);
 			//System.out.println(map.path);
-			System.out.println(map.paths);
+			//System.out.println(map.paths);
 			//System.out.println(map.primMST(map.undirectedGraph));
-			//System.out.println(map.getSumWeightpath(map.paths.get(3), map.undirectedGraph));
-			System.out.println(map.getMaxweight(map.directedGraph));
-			System.out.println(map.getMinweight(map.directedGraph));
+			/*
+			for (int i =0; i < map.paths.size(); i++) {
+				System.out.println(map.getSumWeightpath(map.paths.get(i), map.undirectedGraph));
+			}
+			*/
+			//System.out.println(map.getMaxweight(map.undirectedGraph));
+			//System.out.println(map.getMinweight(map.undirectedGraph));
 
 		}catch(Exception ex){
 			ex.printStackTrace();
