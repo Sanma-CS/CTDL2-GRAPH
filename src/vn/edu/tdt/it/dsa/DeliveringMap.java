@@ -19,18 +19,20 @@ public class DeliveringMap {
 
 	private int[][] undirectedGraph = new int[MAX_EDGE][MAX_EDGE];
 	private int[][] directedGraph = new int[MAX_EDGE][MAX_EDGE];
+
 	private int edge_first = 0;
 	private int edge_end = 0;
 	private int sumEdgesVertices = 0;
+
 	private ArrayList<Integer> path = new ArrayList<>();
 	private ArrayList<ArrayList<Integer>> paths = new ArrayList<>();
 
 	public DeliveringMap(File file) throws IOException{
-		//sinh vien viet ma o day
 		Scanner sc = new Scanner(file);
 		List<String> list = new ArrayList<>();
 		Set<Integer> vertices = new HashSet<>();
 
+		// Init graph default values
 		for (int i = 0; i < MAX_EDGE; i++) {
 			Arrays.fill(undirectedGraph[i], Integer.MAX_VALUE);
 			Arrays.fill(directedGraph[i], Integer.MAX_VALUE);
@@ -40,8 +42,11 @@ public class DeliveringMap {
 			list.add(sc.next());
 		}
 		try {
+			// Get src + dest node
 			edge_first = Integer.parseInt(list.get(0).substring(0,2));
 			edge_end = Integer.parseInt(list.get(list.size()-1).substring(5,7));
+
+			// Graph parser
 			for (int i=0; i < list.size(); i ++) {
 				int weight = Integer.parseInt(list.get(i).substring(2,5));
 				int src = Integer.parseInt(list.get(i).substring(0,2));
@@ -55,6 +60,7 @@ public class DeliveringMap {
 				vertices.add(dest);
 				sumEdgesVertices += weight;
 			}
+
 			sumEdgesVertices += vertices.size();
 		} catch(IndexOutOfBoundsException e)  {e.getMessage();}
 	}
@@ -62,7 +68,7 @@ public class DeliveringMap {
 
 	public int calculate(int level, boolean rushHour){
 		int res = 0;
-		//sinh vien viet ma o day
+
 		int[][] graph;
 		if (!rushHour)
 			graph = directedGraph;
@@ -71,48 +77,48 @@ public class DeliveringMap {
 
 		DFS(edge_first, edge_end, graph);
 
-		//handle level 1,0
+		// Handle level 1,0
 		if (level == 1 || level == 0)
 			res = case_1(level);
-		//handle level 2,3,4,5,6,7
+		// Handle level 2,3,4,5,6,7
 		else if (level >=2 && level <= 7) {
 			int stamina = 100*level;
-			//check if the ways to goal have coffee or not
+			// Check if the ways to goal have coffee or not
 			if(haveSpecialPath(graph) == COFFEE) {
 				for(int i=0; i < paths.size();i++) {
-					//choose coffee and delete the rest
+					// Choose coffee and delete the rest
 					if (getSpecialPathType(paths.get(i), graph) != COFFEE) {
 						paths.remove(i);
 						i--;
 					}
 				}
 			}
-			//check if the ways to goal have block or not
+			// Check if the ways to goal have block or not
 			else if (haveSpecialPath(graph) == BLOCK) {
 				for (int i = 0; i < paths.size(); i++) {
-					//delete any way has block
+					// Delete any way has block
 					if (getSpecialPathType(paths.get(i), graph) == BLOCK) {
 						paths.remove(i);
 						i--;
 					}
 				}
 			}
-			//when every way to goal has block
+			// No possible path found
 			if (paths.isEmpty())
 				res = 99 - 70*level;
 			else {
 				if (level >= 2 && level <= 4) {
-					res = getMinweight(graph);
+					res = getMinWeight(graph);
 					if (res > stamina)
 						res =  50*level - res;
 				}
 				else if (level ==5 || level == 6) {
-					res = getMaxweight(graph);
+					res = getMaxWeight(graph);
 					if (res >= stamina)
 						res = -1*level;
 				}
 				else if (level == 7) {
-					res = (getMaxweight(graph) + getMinweight(graph))/2;
+					res = (getMaxWeight(graph) + getMinWeight(graph))/2;
 					if (res >= 30*level)
 						res = -21;
 				}
@@ -143,7 +149,6 @@ public class DeliveringMap {
 			paths.add(new ArrayList<>(path));
 		}
 		else {
-			//System.out.println(src + " ");	//debug
 			for (int i = 0; i < MAX_EDGE; i++) {
 				if (graph[src][i] != Integer.MAX_VALUE) {
 					if (!visited[i]) {
@@ -165,117 +170,110 @@ public class DeliveringMap {
 		DFSUtil(src, dest, graph, visited);
 	}
 
-    private int minKey(int key[], boolean mstSet[])
-    {
-        // Initialize min value
-        int min = Integer.MAX_VALUE, min_index=-1;
+	private int minKey(int key[], boolean mstSet[])
+	{
+		// Initialize min value
+		int min = Integer.MAX_VALUE, min_index=-1;
 
-        for (int v = 0; v < MAX_EDGE; v++)
-            if (mstSet[v] == false && key[v] < min)
-            {
-                min = key[v];
-                min_index = v;
-            }
+		for (int v = 0; v < MAX_EDGE; v++)
+			if (mstSet[v] == false && key[v] < min)
+			{
+				min = key[v];
+				min_index = v;
+			}
 
-        return min_index;
-    }
+		return min_index;
+	}
 
-    // A utility function to print the constructed MST stored in
-    // parent[]
-    private ArrayList<Integer> printMST(int parent[], int graph[][])
-    {
-        //System.out.println("Edge   Weight");
-        ArrayList<Integer> listWeight = new ArrayList<>();
-        for (int i = 0; i < MAX_EDGE; i++) {
-            if (parent[i] < 0 || graph[i][parent[i]] == Integer.MAX_VALUE) continue;
-          //  System.out.println(parent[i] + " - " + i + "    " +
-          //          graph[i][parent[i]]);
-            listWeight.add(graph[i][parent[i]]);
-        }
-        return listWeight;
-    }
+	// Return list of edges from MST to calculate total weight later
+	private ArrayList<Integer> printMST(int parent[], int graph[][])
+	{
+		ArrayList<Integer> listWeight = new ArrayList<>();
+		for (int i = 0; i < MAX_EDGE; i++) {
+			if (parent[i] < 0 || graph[i][parent[i]] == Integer.MAX_VALUE) continue;
+			listWeight.add(graph[i][parent[i]]);
+		}
+		return listWeight;
+	}
 
-    // Function to construct and print MST for a graph represented
-    //  using adjacency matrix representation
-    private int primMST(int graph[][])
-    {
-    	// Array to store constructed MST
-        int parent[] = new int[MAX_EDGE];
+	// Function to construct MST for a graph represented
+	//  using adjacency matrix representation
+	private int primMST(int graph[][])
+	{
+		// Array to store constructed MST
+		int parent[] = new int[MAX_EDGE];
 
-        // Key values used to pick minimum weight edge in cut
-        int key[] = new int [MAX_EDGE];
+		// Key values used to pick minimum weight edge in cut
+		int key[] = new int [MAX_EDGE];
 
-        // To represent set of vertices not yet included in MST
-        boolean mstSet[] = new boolean[MAX_EDGE];
+		// To represent set of vertices not yet included in MST
+		boolean mstSet[] = new boolean[MAX_EDGE];
 
-        // Initialize all keys as INFINITE
-        for (int i = 0; i < MAX_EDGE; i++)
-        {
-            if (isContainsEdge(graph, i)) {
-                key[i] = Integer.MAX_VALUE;
-            } else {
-                key[i] = 0;
-            }
-        }
+		// Initialize all keys as INFINITE
+		for (int i = 0; i < MAX_EDGE; i++)
+		{
+			if (isContainsEdge(graph, i)) {
+				key[i] = Integer.MAX_VALUE;
+			} else {
+				key[i] = 0;
+			}
+		}
 
-        // Always include first 1st vertex in MST.
-        key[findFirstNode(graph)] = 0;     // Make key 0 so that this vertex is
-        // picked as first vertex
-        parent[findFirstNode(graph)] = -1; // First node is always root of MST
+		// Always include first 1st vertex in MST.
+		key[findFirstNode(graph)] = 0;     // Set first node to be processed
+		parent[findFirstNode(graph)] = -1; // First node is always root of MST
 
-        // The MST will have V vertices
-        for (int count = 0; count < MAX_EDGE-1; count++)
-        {
-            // Pick thd minimum key vertex from the set of vertices
-            // not yet included in MST
-            int u = minKey(key, mstSet);
+		// The MST will have V vertices
+		for (int count = 0; count < MAX_EDGE-1; count++)
+		{
+			// Pick thd minimum key vertex from the set of vertices
+			// not yet included in MST
+			int u = minKey(key, mstSet);
 
-            // Add the picked vertex to the MST Set
-            if (u < 0) continue;
-            mstSet[u] = true;
+			// Add the picked vertex to the MST Set
+			if (u < 0) continue;
+			mstSet[u] = true;
 
-            // Update key value and parent index of the adjacent
-            // vertices of the picked vertex. Consider only those
-            // vertices which are not yet included in MST
-            for (int v = 0; v < MAX_EDGE; v++)
+			// Update key value and parent index of the adjacent
+			// vertices of the picked vertex. Consider only those
+			// vertices which are not yet included in MST
+			for (int v = 0; v < MAX_EDGE; v++)
 
-                // graph[u][v] is non zero only for adjacent vertices of m
-                // mstSet[v] is false for vertices not yet included in MST
-                // Update the key only if graph[u][v] is smaller than key[v]
-                if (graph[u][v]!=Integer.MAX_VALUE && mstSet[v] == false &&
-                        graph[u][v] <  key[v])
-                {
-                    parent[v]  = u;
-                    key[v] = graph[u][v];
-                }
-        }
+				// graph[u][v] is non zero only for adjacent vertices of m
+				// mstSet[v] is false for vertices not yet included in MST
+				// Update the key only if graph[u][v] is smaller than key[v]
+				if (graph[u][v]!=Integer.MAX_VALUE && mstSet[v] == false &&
+						graph[u][v] <  key[v])
+				{
+					parent[v]  = u;
+					key[v] = graph[u][v];
+				}
+		}
 
-        // print the constructed MST
-        ArrayList<Integer> sumWeight  = printMST(parent, graph);
-        //System.out.println(printMST(parent, graph));	//debug
-		return getSumlist(sumWeight);
-    }
+		ArrayList<Integer> sumWeight  = printMST(parent, graph);
+		return getSumList(sumWeight);
+	}
 
-    private int findFirstNode(int[][] graph) {
-        for (int i = 0; i < MAX_EDGE; i++) {
-            for (int j = 0; j < MAX_EDGE; j++) {
-                if (graph[i][j] > 0 && graph[i][j] != Integer.MAX_VALUE)
-                    return i;
-            }
-        }
-        return -1;
-    }
+	private int findFirstNode(int[][] graph) {
+		for (int i = 0; i < MAX_EDGE; i++) {
+			for (int j = 0; j < MAX_EDGE; j++) {
+				if (graph[i][j] > 0 && graph[i][j] != Integer.MAX_VALUE)
+					return i;
+			}
+		}
+		return -1;
+	}
 
-    private boolean isContainsEdge(int[][] graph, int src) {
-        for (int i = 0; i < MAX_EDGE; i++) {
-            if (graph[src][i] == Integer.MAX_VALUE || graph[i][src] ==
-                    Integer.MAX_VALUE) continue;
-            if (graph[src][i] > 0 || graph[i][src] > 0) return true;
-        }
-        return false;
-    }
+	private boolean isContainsEdge(int[][] graph, int src) {
+		for (int i = 0; i < MAX_EDGE; i++) {
+			if (graph[src][i] == Integer.MAX_VALUE || graph[i][src] ==
+					Integer.MAX_VALUE) continue;
+			if (graph[src][i] > 0 || graph[i][src] > 0) return true;
+		}
+		return false;
+	}
 
-    private int getSumlist (ArrayList<Integer> list) {
+	private int getSumList(ArrayList<Integer> list) {
 		int s = 0;
 		for (int i=0; i < list.size(); i++) {
 			s += list.get(i);
@@ -283,7 +281,7 @@ public class DeliveringMap {
 		return  s;
 	}
 
-	private int getSumWeightpath (ArrayList<Integer> way, int[][] graph) {
+	private int getSumWeightPath(ArrayList<Integer> way, int[][] graph) {
 		int s = 0;
 		for (int i = 0; i < way.size() - 1; i++) {
 			s += graph[way.get(i)][way.get(i+1)];
@@ -302,7 +300,7 @@ public class DeliveringMap {
 		return NOTHING;
 	}
 
-	//To track down anything in the map
+	//To track down anything in list of possible paths
 	private int haveSpecialPath (int[][] graph) {
 		for (int i = 0; i < paths.size(); i++) {
 			if(getSpecialPathType(paths.get(i), graph) == BLOCK )
@@ -314,18 +312,18 @@ public class DeliveringMap {
 	}
 
 
-	private int getMaxweight(int[][] graph) {
+	private int getMaxWeight(int[][] graph) {
 		List<Integer> w = new ArrayList<>();
 		for (int i = 0; i < paths.size(); i++) {
-			w.add(getSumWeightpath(paths.get(i), graph));
+			w.add(getSumWeightPath(paths.get(i), graph));
 		}
 		return Collections.max(w);
 	}
 
-	private int getMinweight(int[][] graph) {
+	private int getMinWeight(int[][] graph) {
 		List<Integer> w = new ArrayList<>();
 		for (int i = 0; i < paths.size(); i++) {
-			w.add(getSumWeightpath(paths.get(i), graph));
+			w.add(getSumWeightPath(paths.get(i), graph));
 		}
 		return Collections.min(w);
 	}
@@ -333,21 +331,12 @@ public class DeliveringMap {
 	public static void main (String[] args){
 		try{
 			DeliveringMap map = new DeliveringMap(new File("map.txt"));
-			//System.out.println(map.haveSpecialPath(map.undirectedGraph));
-			System.out.println(map.calculate(9, false));		//default do not touch
-			//System.out.println(map.case_1(1));	//debug
-			//map.DFS(1, 45, map.directedGraph);
-			//System.out.println(map.path);
-			//System.out.println(map.paths);
-			//System.out.println(map.primMST(map.undirectedGraph));
-			/*
-			for (int i =0; i < map.paths.size(); i++) {
-				System.out.println(map.getSumWeightpath(map.paths.get(i), map.undirectedGraph));
+			for (int i = 0; i < 8; i++) {
+				System.out.println(map.calculate(i, false));
+				System.out.println(map.calculate(i, true));
 			}
-			*/
-			//System.out.println(map.getMaxweight(map.undirectedGraph));
-			//System.out.println(map.getMinweight(map.undirectedGraph));
-
+			System.out.println(map.calculate(9, false));
+			System.out.println(map.calculate(9, true));
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}
